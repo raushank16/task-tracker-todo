@@ -1,16 +1,26 @@
 import TaskContainer from "./TaskContainer";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+
 import axios from "axios";
 import CreateTask from "./CreateTask";
+import Toast from "../../components/toast/Toast";
 
 
 const TaskList = () => {
+
+    const { role } = useContext(AuthContext)
+
     const [tasks, setTasks] = useState([]);
     const [taskReload, setTaskReload] = useState(false);
     const [popup, setPopup] = useState(false)
+    const [toast, setToast] = useState(false)
+    const [toastMessage, setToastMessage] = useState('')
+
+
 
     const handleTaskUpdate = async (taskId, newStatus) => {
-        console.log(taskId, newStatus, 25)
+        // console.log(taskId, newStatus, 25)
         // Find the task with the given ID and update its status
         const updatedTasks = tasks.map((task) =>
             task._id === parseInt(taskId) ? { ...task, status: newStatus } : task
@@ -20,32 +30,43 @@ const TaskList = () => {
         // console.log(`Task ${taskId} status changed to ${newStatus}.`)
 
 
+
+
         try {
-            const response = await axios.put(`http://localhost:9000/api/tasks/${taskId}`, { status: newStatus },
+            const res = await axios.put(`http://localhost:9000/api/tasks/${role === "ADMIN" ? "admin/" + taskId : taskId}`, { status: newStatus },
                 {
                     headers: {
-                        'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+                        // 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+                        // 'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+                        application: 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
                 }
 
-            ).then((response) => {
-                // console.log(response);
+            ).then((res) => {
+                console.log(res, "create task response");
+
+                if (res.status === 200) {
+                    console.log("updated")
+                    setToastMessage("Task Moved To " + newStatus)
+                    setToast(true)
+                }
+
+
                 setTaskReload(!taskReload);
             })
         } catch (error) {
-            console.error(error);
+
+            console.log(error, 53)
+            setToastMessage(error.response.data.message)
+            setToast(true)
+
+            // if (error.response.status === 400) {
+            //     setToastMessage("Already DONE task cannot be updated")
+            //     setToast(true)
+            // }
+            // console.error(error);
         }
-        // Make the API call to update the task's status
-        // await axios.put(`http://192.168.0.169:9000/api/tasks/${taskId}`, { status: newStatus }).
-
-        //     then((response) =>
-        //         console.log(response, 38)
-        //     )
-        //     .then((data) => console.log(data))
-        //     .catch((error) => console.error(error));
-
-
 
     };
 
@@ -53,7 +74,7 @@ const TaskList = () => {
         setPopup(true)
     }
 
-    console.log(taskReload);
+
 
     useEffect(() => {
         // i need to get tasks by user id
@@ -69,11 +90,14 @@ const TaskList = () => {
 
 
 
+    const handleToastClose = () => {
+        setToast(false);
+    };
 
-    
 
     return (
         <div className="w-[1200px] overflow-x-auto">
+            {toast && <Toast message={toastMessage} onClose={handleToastClose} />}
             {popup && <CreateTask popup={setPopup} />}
 
             <div className='flex md:flex-row flex-col gap-5 absolute'>

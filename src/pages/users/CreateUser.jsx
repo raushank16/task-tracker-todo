@@ -18,7 +18,7 @@ const CreateUser = ({ popup }) => {
     mobile: '',
   })
 
-  const [profileImg, setProfileImg] = useState('')
+  const [profileImg, setProfileImg] = useState("")
 
   const [error, setError] = useState({})
 
@@ -31,6 +31,8 @@ const CreateUser = ({ popup }) => {
   }
 
   const handleImage = (e) => {
+    setProfileImg(e.target.files[0])
+
     console.log(e.target.files[0]);
     // setProfileImg({ profileImg: e.target.files[0] });
   }
@@ -90,10 +92,16 @@ const CreateUser = ({ popup }) => {
 
   const handleSubmit = (e) => {
 
+    let vals = new FormData();
+    vals.append("user", JSON.stringify(data));
+    vals.append("profileImg", profileImg);
+
+    console.log(vals, 97)
+
     // const formData = new FormData();
     // formData.append('image', profileImg);
 
-    axios.post('http://localhost:9000/api/users', data, {
+    axios.post('http://localhost:9000/api/users', vals, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -103,7 +111,7 @@ const CreateUser = ({ popup }) => {
       console.log(res.data);
       console.log(res, 66);
       if (res.status === 200) {
-        
+
         setMessage("User Created Successfully!");
         setShowToast(true)
         popup(false)
@@ -156,8 +164,21 @@ const CreateUser = ({ popup }) => {
               <p className='text-red-600 text-sm'>{error.mobile}</p>
 
               <div className='flex flex-col justify-between gap-y-4 mt-4'>
-                <input value={profileImg} onChange={handleImage} type="file" name='image' className='text-xs text-grey-500 file:mr-5 file:px-4 file:py-2 file:rounded-full file:border-0 file:text-md file:font-semibold file:text-white file:bg-gradient-to-r file:bg-blue-400 hover:file:cursor-pointer hover:file:opacity-80 ' />
-                <p className='text-sm'> Please choose your Profile Pic</p>
+                {/* <input value={profileImg} onChange={handleImage} type="file" name='image' className='text-xs text-grey-500 file:mr-5 file:px-4 file:py-2 file:rounded-full file:border-0 file:text-md file:font-semibold file:text-white file:bg-gradient-to-r file:bg-blue-400 hover:file:cursor-pointer hover:file:opacity-80 ' /> */}
+
+                {/* <input type="file" name='image' onChange={handleImage} className='text-xs text-grey-500 file:mr-5 file:px-4 file:py-2 file:rounded-full file:border-0 file:text-md file:font-semibold file:text-white file:bg-gradient-to-r file:bg-blue-400 hover:file:cursor-pointer hover:file:opacity-80 ' />
+                <p className='text-sm'> Please choose your Profile Pic</p> */}
+                <input
+                  id="profileImg"
+                  name="profileImg"
+                  placeholder=""
+                  type="file"
+                  onChange={(event) => {
+                    setProfileImg(event.target.files[0])
+                  }}
+                  required
+                // className="hidden"
+                />
               </div>
 
               <button onClick={() => handleValidate()} type='button' className='w-full px-6 py-2 mt-10 m-auto flex items-center justify-center rounded-md bg-gradient-to-r from-cyan-500 to-blue-500 cursor-pointer text-gray-100 font-bold text-xl hover:duration-500 hover:scale-95'>Create</button>
